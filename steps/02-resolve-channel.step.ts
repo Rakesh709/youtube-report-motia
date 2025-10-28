@@ -77,17 +77,27 @@ export const handler = async  (eventData:any, {emit,logger,state} :any) => {
             ...jobData,
             status:'failed',
             error:"Channel not found"
+        });
+
+        await emit({
+            topic: "yt.channel.error",
+            data:{
+                jobId,
+                email,
+            }
         })
+        return;
         }
 
-        
         await emit({
             topic: "yt.channel.resolve",
             data:{
                 jobId,
                 email,
             }
-        })
+        });
+        
+        
 
         return;
         
