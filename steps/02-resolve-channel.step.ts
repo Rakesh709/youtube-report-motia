@@ -93,6 +93,8 @@ export const handler = async  (eventData:any, {emit,logger,state} :any) => {
             topic: "yt.channel.resolve",
             data:{
                 jobId,
+                channelId,
+                channelName,
                 email,
             }
         });
@@ -115,7 +117,7 @@ export const handler = async  (eventData:any, {emit,logger,state} :any) => {
         await state.set(`job: ${jobId}`,{
             ...jobData,
             status:'failed',
-            error:"error.message"
+            error:error.message
         })
 
         await emit({
