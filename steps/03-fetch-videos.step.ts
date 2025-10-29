@@ -2,7 +2,7 @@ import { EventConfig } from 'motia';
 
 //step3 :
 //responsible for fetching video from YT
-export const config: EventConfig = {
+export const config = {
     name: "fetchVideos",
     type: "event",
     subscribes: ["yt.channel.resolved"],
