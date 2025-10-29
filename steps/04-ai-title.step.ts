@@ -9,6 +9,13 @@ export const config = {
     emits: ['yt.titles.ready', 'yt.titles.error']
 }
 
+interface Video {
+    videoId: string;
+    title: string;
+    url: string;
+    publishedAt: string;
+    thumbnail: string;
+}
 
 interface ImprovedTitle {
     original: string;
@@ -50,7 +57,72 @@ export const handler = async (eventData: any, { emit, logger, state }: any) =>{
             status: 'generating titles'
         });
 
-        
+        const videoTitles = videos.map((v: Video, idx:number )=> `${idx+1}."${v.title}"`).join('\n')
+
+        const prompt=``
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions',{
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+
+                'Authorization':`Bearer ${OPENAI_API_KEY}`
+            },
+            body:JSON.stringify({
+                model:'gpt-4o-mini',
+                messages:[
+                    {role:'system',
+                        content:"You are a youtube SEO and engagement expert who helps creators write better video titles"
+                    },
+                    {
+                        role:'user',
+                        content:prompt
+                    }
+                ],
+                temperature:0.7,
+                response_formate:{type:'json_object'}
+            })
+        })
+
+
+        if(!response.ok){
+            const errorData = await response.json()
+            throw new Error(`OpenAI API error: ${errorData.error?.message} || "Unkown AI error`)
+        }
+
+        const aiResponse = await response.json()
+
+        const aiContent = aiResponse.choices[0].message.content;
+
+        const parsedResponse = JSON.parse(aiContent)
+
+        const improvedTitles: ImprovedTitle[] = parsedResponse.map((title:any,idx:number)=> ({
+            original: title.original,
+            improved: title.improved,
+            rational:title.rational,
+            url:videos[idx].url
+        }))
+
+        logger.info("Titles generated successfully",{
+            jobId,
+            count:improvedTitles.length
+        })
+
+        await state.set(`job: ${jobId}`, {
+            ...jobData,
+            status: 'titles reddy',
+            improvedTitles
+        })
+
+        await emit({
+            topic: "yt.titles.ready",
+            data: {
+                jobId,
+                channelName,
+                improvedTitles,
+                email,
+            }
+        })
 
 
         
