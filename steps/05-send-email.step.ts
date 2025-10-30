@@ -7,7 +7,7 @@ import { title } from 'process';
 export const config = {
     name: "sendEmail",
     type: "event",
-    subscribes: ["yt.videos.ready"],
+    subscribes: ["yt.titles.ready"],
     emits: ['yt.email.send',]
 }
 
